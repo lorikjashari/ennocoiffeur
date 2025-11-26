@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
 
 export async function GET() {
   try {
@@ -23,9 +24,11 @@ export async function POST(request: Request) {
   try {
     const { name, price, duration_minutes, description } = await request.json()
 
-    const { data: service, error } = await supabase
+    const { data: service, error } = await (supabase as any)
       .from('services')
-      .insert({ name, price, duration_minutes, description })
+      .insert([
+        { name, price, duration_minutes, description } satisfies Database['public']['Tables']['services']['Insert']
+      ])
       .select()
       .single()
 
@@ -44,7 +47,7 @@ export async function PATCH(request: Request) {
   try {
     const { id, name, price, duration_minutes, description } = await request.json()
 
-    const { data: service, error } = await supabase
+    const { data: service, error } = await (supabase as any)
       .from('services')
       .update({ name, price, duration_minutes, description })
       .eq('id', id)
@@ -67,10 +70,14 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
-    const { error } = await supabase
+    if (!id) {
+      return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+    }
+
+    const { error } = await (supabase as any)
       .from('services')
       .delete()
-      .eq('id', id)
+      .eq('id', id as string)
 
     if (error) throw error
 

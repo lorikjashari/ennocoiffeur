@@ -16,7 +16,7 @@ export async function GET() {
     if (error) throw error
 
     // Transform user array to single object
-    const transformedBarbers = barbers?.map(barber => ({
+    const transformedBarbers = (barbers ?? []).map((barber: any) => ({
       ...barber,
       user: Array.isArray(barber.user) ? barber.user[0] : barber.user
     }))
@@ -39,7 +39,7 @@ export async function PATCH(request: Request) {
     if (break_times !== undefined) updateData.break_times = break_times
     if (blocked_days !== undefined) updateData.blocked_days = blocked_days
 
-    const { data: barber, error } = await supabase
+    const { data: barber, error } = await (supabase as any)
       .from('barbers')
       .update(updateData)
       .eq('id', id)

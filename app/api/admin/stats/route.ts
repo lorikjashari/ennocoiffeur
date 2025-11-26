@@ -31,12 +31,13 @@ export async function GET(request: Request) {
     if (error) throw error
 
     // Calculate statistics
-    const totalAppointments = appointments?.length || 0
-    const totalRevenue = appointments?.reduce((sum, apt) => sum + (apt.service?.price || 0), 0) || 0
+    const appts = (appointments ?? []) as any[]
+    const totalAppointments = appts.length
+    const totalRevenue = appts.reduce((sum, apt) => sum + (apt.service?.price || 0), 0) || 0
     
     // Most booked barber
     const barberCounts: { [key: string]: { name: string; count: number } } = {}
-    appointments?.forEach(apt => {
+    appts.forEach((apt: any) => {
       const barberName = apt.barber?.user?.name || 'Unknown'
       if (!barberCounts[barberName]) {
         barberCounts[barberName] = { name: barberName, count: 0 }
@@ -58,7 +59,8 @@ export async function GET(request: Request) {
       .neq('status', 'canceled')
 
     const serviceCounts: { [key: string]: number } = {}
-    serviceStats?.forEach(apt => {
+    const svcStats = (serviceStats ?? []) as any[]
+    svcStats.forEach((apt: any) => {
       const serviceName = apt.service?.name || 'Unknown'
       serviceCounts[serviceName] = (serviceCounts[serviceName] || 0) + 1
     })
@@ -78,7 +80,7 @@ export async function GET(request: Request) {
 
     // Peak hours analysis
     const hourCounts: { [key: number]: number } = {}
-    appointments?.forEach(apt => {
+    appts.forEach((apt: any) => {
       const hour = parseInt(apt.start_time.split(':')[0])
       hourCounts[hour] = (hourCounts[hour] || 0) + 1
     })
@@ -96,8 +98,8 @@ export async function GET(request: Request) {
       mostBookedBarber,
       mostPopularService,
       peakHours,
-      appointmentsByDay: appointments?.reduce((acc, apt) => {
-        const date = apt.date
+      appointmentsByDay: appts.reduce((acc: any, apt: any) => {
+        const date = apt.date as string
         acc[date] = (acc[date] || 0) + 1
         return acc
       }, {} as { [key: string]: number })

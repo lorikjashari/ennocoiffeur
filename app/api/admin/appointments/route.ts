@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import type { Database } from '@/lib/database.types'
 
 export async function GET(request: Request) {
   try {
@@ -54,18 +55,20 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: appointment, error } = await supabase
+    const { data: appointment, error } = await (supabase as any)
       .from('appointments')
-      .insert({
-        barber_id,
-        client_id,
-        service_id,
-        date,
-        start_time,
-        end_time,
-        status: status || 'pending',
-        notes
-      })
+      .insert([
+        {
+          barber_id,
+          client_id,
+          service_id,
+          date,
+          start_time,
+          end_time,
+          status: status || 'pending',
+          notes
+        } satisfies Database['public']['Tables']['appointments']['Insert']
+      ])
       .select(`
         *,
         service:services(*),
@@ -96,7 +99,7 @@ export async function PATCH(request: Request) {
     if (start_time !== undefined) updateData.start_time = start_time
     if (end_time !== undefined) updateData.end_time = end_time
 
-    const { data: appointment, error } = await supabase
+    const { data: appointment, error } = await (supabase as any)
       .from('appointments')
       .update(updateData)
       .eq('id', id)
@@ -124,10 +127,14 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
-    const { error } = await supabase
+    if (!id) {
+      return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+    }
+
+    const { error } = await (supabase as any)
       .from('appointments')
       .delete()
-      .eq('id', id)
+      .eq('id', id as string)
 
     if (error) throw error
 

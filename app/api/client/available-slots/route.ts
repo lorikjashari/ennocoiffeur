@@ -35,7 +35,8 @@ export async function GET(request: Request) {
     const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'UTC' })
       .format(dateObj)
       .toLowerCase()
-    const workingHours = barber.working_hours as any
+    const b = barber as any
+    const workingHours = b.working_hours as any
     
     console.log('Date:', date, 'Day:', dayOfWeek, 'Working Hours keys:', workingHours ? Object.keys(workingHours) : [])
     
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
     }
 
     // Check if day is blocked
-    const blockedDays = (barber.blocked_days as string[]) || []
+    const blockedDays = (b.blocked_days as string[]) || []
     if (blockedDays.includes(date)) {
       return NextResponse.json({ slots: [] })
     }
@@ -71,8 +72,9 @@ export async function GET(request: Request) {
       .eq('date', date)
       .neq('status', 'canceled')
 
+    const appts = (appointments ?? []) as any[]
     const bookedSlots = new Set(
-      appointments?.map(apt => apt.start_time) || []
+      appts.map(apt => apt.start_time) || []
     )
 
     // Determine if selected date is today (use local server date)
@@ -100,7 +102,7 @@ export async function GET(request: Request) {
       let isAvailable = true
       
       // Check against all booked appointments
-      appointments?.forEach(apt => {
+      appts.forEach((apt: any) => {
         const aptStartMinutes = parseInt(apt.start_time.split(':')[0]) * 60 + parseInt(apt.start_time.split(':')[1])
         const aptEndMinutes = parseInt(apt.end_time.split(':')[0]) * 60 + parseInt(apt.end_time.split(':')[1])
         const currentSlotMinutes = currentHour * 60 + currentMinute

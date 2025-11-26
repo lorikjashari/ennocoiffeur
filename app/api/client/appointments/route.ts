@@ -55,7 +55,8 @@ export async function DELETE(request: Request) {
       .single()
 
     if (appointment) {
-      const appointmentDateTime = new Date(`${appointment.date}T${appointment.start_time}`)
+      const appt = appointment as any
+      const appointmentDateTime = new Date(`${appt.date}T${appt.start_time}`)
       const now = new Date()
       const hoursDifference = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60)
 
@@ -67,7 +68,7 @@ export async function DELETE(request: Request) {
       }
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('appointments')
       .update({ status: 'canceled' })
       .eq('id', id)

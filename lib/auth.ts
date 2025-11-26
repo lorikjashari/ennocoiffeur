@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs'
 import { supabase } from './supabase'
+import type { Database } from './database.types'
 
 export interface User {
   id: string
@@ -28,18 +29,19 @@ export async function loginUser(email: string, password: string): Promise<LoginR
       return { success: false, error: 'Invalid email or password' }
     }
 
-    const isValid = await bcrypt.compare(password, user.password_hash)
+    const u = user as any
+    const isValid = await bcrypt.compare(password, u.password_hash)
     if (!isValid) {
       return { success: false, error: 'Invalid email or password' }
     }
 
     const userData: User = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role as 'admin' | 'barber' | 'client',
-      photo_url: user.photo_url
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      phone: u.phone,
+      role: u.role as 'admin' | 'barber' | 'client',
+      photo_url: u.photo_url
     }
 
     return { success: true, user: userData }
@@ -57,15 +59,17 @@ export async function createUser(
 ) {
   const passwordHash = await bcrypt.hash(password, 10)
 
-  const { data: user, error: userError } = await supabase
+  const { data: user, error: userError } = await (supabase as any)
     .from('users')
-    .insert({
-      name,
-      email,
-      password_hash: passwordHash,
-      phone,
-      role
-    })
+    .insert([
+      {
+        name,
+        email,
+        password_hash: passwordHash,
+        phone,
+        role
+      } satisfies Database['public']['Tables']['users']['Insert']
+    ])
     .select()
     .single()
 
@@ -73,30 +77,34 @@ export async function createUser(
 
   // Create role-specific record
   if (role === 'barber') {
-    const { error: barberError } = await supabase
+    const { error: barberError } = await (supabase as any)
       .from('barbers')
-      .insert({
-        user_id: user.id,
-        working_hours: {
-          monday: { start: '09:00', end: '18:00' },
-          tuesday: { start: '09:00', end: '18:00' },
-          wednesday: { start: '09:00', end: '18:00' },
-          thursday: { start: '09:00', end: '18:00' },
-          friday: { start: '09:00', end: '18:00' },
-          saturday: { start: '09:00', end: '16:00' },
-          sunday: null
-        },
-        break_times: [],
-        blocked_days: []
-      })
+      .insert([
+        {
+          user_id: user.id,
+          working_hours: {
+            monday: { start: '09:00', end: '18:00' },
+            tuesday: { start: '09:00', end: '18:00' },
+            wednesday: { start: '09:00', end: '18:00' },
+            thursday: { start: '09:00', end: '18:00' },
+            friday: { start: '09:00', end: '18:00' },
+            saturday: { start: '09:00', end: '16:00' },
+            sunday: null
+          },
+          break_times: [],
+          blocked_days: []
+        } satisfies Database['public']['Tables']['barbers']['Insert']
+      ])
     if (barberError) throw barberError
   } else if (role === 'client') {
-    const { error: clientError } = await supabase
+    const { error: clientError } = await (supabase as any)
       .from('clients')
-      .insert({
-        user_id: user.id,
-        loyalty_points: 0
-      })
+      .insert([
+        {
+          user_id: user.id,
+          loyalty_points: 0
+        } satisfies Database['public']['Tables']['clients']['Insert']
+      ])
     if (clientError) throw clientError
   }
 

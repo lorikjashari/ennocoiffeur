@@ -26,10 +26,11 @@ export async function GET(request: Request) {
       )
     }
 
+    const b = barber as any
     return NextResponse.json({
       barber,
-      workingHourType: typeof barber.working_hours,
-      workingHourKeys: barber.working_hours ? Object.keys(barber.working_hours) : []
+      workingHourType: typeof b.working_hours,
+      workingHourKeys: b.working_hours ? Object.keys(b.working_hours) : []
     })
   } catch (error) {
     return NextResponse.json(

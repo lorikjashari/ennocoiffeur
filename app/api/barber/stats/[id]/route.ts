@@ -34,12 +34,13 @@ export async function GET(
 
     if (error) throw error
 
-    const totalAppointments = appointments?.length || 0
-    const totalRevenue = appointments?.reduce((sum, apt) => sum + (apt.service?.price || 0), 0) || 0
+    const appts = (appointments ?? []) as any[]
+    const totalAppointments = appts.length
+    const totalRevenue = appts.reduce((sum, apt) => sum + (apt.service?.price || 0), 0) || 0
 
     // Most selected service
     const serviceCounts: { [key: string]: number } = {}
-    appointments?.forEach(apt => {
+    appts.forEach((apt: any) => {
       const serviceName = apt.service?.name || 'Unknown'
       serviceCounts[serviceName] = (serviceCounts[serviceName] || 0) + 1
     })
@@ -52,8 +53,8 @@ export async function GET(
       totalAppointments,
       totalRevenue,
       mostSelectedService,
-      appointmentsByDay: appointments?.reduce((acc, apt) => {
-        const date = apt.date
+      appointmentsByDay: appts.reduce((acc: any, apt: any) => {
+        const date = apt.date as string
         acc[date] = (acc[date] || 0) + 1
         return acc
       }, {} as { [key: string]: number })

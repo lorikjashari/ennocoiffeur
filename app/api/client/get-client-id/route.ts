@@ -26,7 +26,8 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json({ clientId: client.id })
+    const c = client as any
+    return NextResponse.json({ clientId: c.id })
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch client ID' },
