@@ -65,14 +65,6 @@ npm install
 3. Copy and paste the contents of \`database/schema.sql\`
 4. Run the SQL to create all tables and sample data
 
-### 4. Environment Variables
-
-The \`.env.local\` file is already configured with:
-
-\`\`\`env
-NEXT_PUBLIC_SUPABASE_URL=https://mofwhurbhzafkjdcnqoy.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-\`\`\`
 
 ### 5. Run the development server
 
